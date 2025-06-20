@@ -1,51 +1,62 @@
 package com.example.sleepat.presentation.screens.timer
 
-import android.os.CountDownTimer
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class TimerViewModel @Inject constructor() : ViewModel() {
 
-    private val _timeLeft = MutableStateFlow(0L)
-    val timeLeft: StateFlow<Long> = _timeLeft
+    private val _selectedMinutes = MutableStateFlow(15)
+    val selectedMinutes: StateFlow<Int> = _selectedMinutes.asStateFlow()
+
+    // Time is now stored in seconds for easier testing and calculation
+    private val _timeLeftInSeconds = MutableStateFlow(_selectedMinutes.value * 60)
+    val timeLeftInSeconds: StateFlow<Int> = _timeLeftInSeconds.asStateFlow()
 
     private val _isTimerRunning = MutableStateFlow(false)
-    val isTimerRunning: StateFlow<Boolean> = _isTimerRunning
+    val isTimerRunning: StateFlow<Boolean> = _isTimerRunning.asStateFlow()
 
-    private var countDownTimer: CountDownTimer? = null
+    private var timerJob: Job? = null
 
-    fun startTimer(durationMillis: Long) {
+    fun updateSelectedMinutes(minutes: Int) {
+        _selectedMinutes.value = minutes
+        if (!_isTimerRunning.value) {
+            _timeLeftInSeconds.value = minutes * 60
+        }
+    }
+
+    fun startTimer() {
         if (_isTimerRunning.value) return
 
-        _timeLeft.value = durationMillis
         _isTimerRunning.value = true
-
-        countDownTimer = object : CountDownTimer(durationMillis, 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                _timeLeft.value = millisUntilFinished
+        timerJob = viewModelScope.launch {
+            var seconds = _timeLeftInSeconds.value
+            while (seconds > 0) {
+                delay(1000)
+                seconds--
+                _timeLeftInSeconds.value = seconds
             }
-
-            override fun onFinish() {
-                _timeLeft.value = 0
-                _isTimerRunning.value = false
-                // TODO: Implement device sleep functionality here
-            }
-        }.start()
+            _isTimerRunning.value = false
+            // TODO: Implement device sleep logic
+        }
     }
 
     fun stopTimer() {
-        countDownTimer?.cancel()
+        timerJob?.cancel()
         _isTimerRunning.value = false
-        // Reset time or keep current timeLeft based on desired behavior
-        // _timeLeft.value = 0L 
+        _timeLeftInSeconds.value = _selectedMinutes.value * 60
     }
 
     override fun onCleared() {
         super.onCleared()
-        countDownTimer?.cancel()
+        timerJob?.cancel()
     }
 }
