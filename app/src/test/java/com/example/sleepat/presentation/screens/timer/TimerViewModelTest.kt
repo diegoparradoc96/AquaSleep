@@ -5,9 +5,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.*
 import org.junit.Assert.assertEquals
+import com.example.sleepat.domain.manager.DeviceAdminManager
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.Before
+import org.mockito.Mock
+import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.whenever
 
 @ExperimentalCoroutinesApi
 class MainDispatcherRule(
@@ -25,6 +29,9 @@ class MainDispatcherRule(
 @ExperimentalCoroutinesApi
 class TimerViewModelTest {
 
+    @Mock
+    private lateinit var mockDeviceAdminManager: DeviceAdminManager
+
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
@@ -35,7 +42,9 @@ class TimerViewModelTest {
 
     @Before
     fun setUp() {
-        viewModel = TimerViewModel()
+        MockitoAnnotations.openMocks(this)
+        whenever(mockDeviceAdminManager.isAdminActive()).thenReturn(true)
+        viewModel = TimerViewModel(mockDeviceAdminManager)
     }
 
     @Test
