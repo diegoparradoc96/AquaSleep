@@ -19,7 +19,7 @@ fun AppNavigation() {
     NavHost(navController = navController, startDestination = Routes.TIMER_SCREEN) {
         composable(Routes.TIMER_SCREEN) {
             val viewModel: TimerViewModel = hiltViewModel()
-            TimerScreen(navController = navController, viewModel = viewModel)
+            TimerScreen(viewModel = viewModel)
         }
         // Add other composables/screens here
     }
