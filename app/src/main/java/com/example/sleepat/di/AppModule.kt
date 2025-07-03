@@ -1,7 +1,7 @@
 package com.example.sleepat.di
 
 import android.content.Context
-import com.example.sleepat.domain.manager.DeviceAdminManager
+import com.example.sleepat.domain.manager.MediaController
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,7 +15,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideDeviceAdminManager(@ApplicationContext context: Context): DeviceAdminManager {
-        return DeviceAdminManager(context)
+    fun provideMediaController(@ApplicationContext context: Context): MediaController {
+        return MediaController(context)
     }
 }
