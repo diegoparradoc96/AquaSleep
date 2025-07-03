@@ -1,11 +1,15 @@
 package com.example.sleepat.presentation.screens.timer
 
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.IBinder
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.sleepat.domain.manager.MediaController
+import com.example.sleepat.service.TimerForegroundService
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,19 +18,50 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TimerViewModel @Inject constructor(
-    private val mediaController: MediaController
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _selectedMinutes = MutableStateFlow(15)
     val selectedMinutes: StateFlow<Int> = _selectedMinutes.asStateFlow()
 
-    private val _timeLeftInSeconds = MutableStateFlow(_selectedMinutes.value * 60)
+    private val _timeLeftInSeconds = MutableStateFlow(0)
     val timeLeftInSeconds: StateFlow<Int> = _timeLeftInSeconds.asStateFlow()
 
     private val _isTimerRunning = MutableStateFlow(false)
     val isTimerRunning: StateFlow<Boolean> = _isTimerRunning.asStateFlow()
 
-    private var timerJob: Job? = null
+    private var timerService: TimerForegroundService? = null
+    private var bound = false
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            val binder = service as TimerForegroundService.TimerBinder
+            timerService = binder.getService()
+            bound = true
+            
+            // Sincronizar estados con el service
+            viewModelScope.launch {
+                timerService?.timeLeftInSeconds?.collect { seconds ->
+                    _timeLeftInSeconds.value = seconds
+                }
+            }
+            
+            viewModelScope.launch {
+                timerService?.isTimerRunning?.collect { running ->
+                    _isTimerRunning.value = running
+                }
+            }
+        }
+
+        override fun onServiceDisconnected(arg0: ComponentName) {
+            bound = false
+            timerService = null
+        }
+    }
+
+    init {
+        bindToService()
+    }
 
     fun updateSelectedMinutes(minutes: Int) {
         _selectedMinutes.value = minutes
@@ -37,28 +72,31 @@ class TimerViewModel @Inject constructor(
 
     fun startTimer() {
         if (_isTimerRunning.value) return
-
-        _isTimerRunning.value = true
-        timerJob = viewModelScope.launch {
-            var seconds = _timeLeftInSeconds.value
-            while (seconds > 0) {
-                delay(1000)
-                seconds--
-                _timeLeftInSeconds.value = seconds
-            }
-            _isTimerRunning.value = false
-            mediaController.pauseCurrentMedia()
+        
+        val intent = Intent(context, TimerForegroundService::class.java).apply {
+            action = TimerForegroundService.ACTION_START_TIMER
+            putExtra(TimerForegroundService.EXTRA_MINUTES, _selectedMinutes.value)
         }
+        context.startForegroundService(intent)
     }
 
     fun stopTimer() {
-        timerJob?.cancel()
-        _isTimerRunning.value = false
-        _timeLeftInSeconds.value = _selectedMinutes.value * 60
+        val intent = Intent(context, TimerForegroundService::class.java).apply {
+            action = TimerForegroundService.ACTION_STOP_TIMER
+        }
+        context.startService(intent)
+    }
+
+    private fun bindToService() {
+        val intent = Intent(context, TimerForegroundService::class.java)
+        context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
     }
 
     override fun onCleared() {
         super.onCleared()
-        timerJob?.cancel()
+        if (bound) {
+            context.unbindService(serviceConnection)
+            bound = false
+        }
     }
 }
