@@ -99,9 +99,9 @@ fun CircularTimeSelector(
             // Calculate the top-left offset to center the visual circle inside the larger canvas
             val topLeftOffset = (size.width - visualCircleSizePx) / 2f
 
-            // Draw the background track
+            // Draw the background track (más sutil y oceánico)
             drawArc(
-                color = surfaceVariantColor,
+                color = Color(0xFF1E293B).copy(alpha = 0.3f), // Azul gris oceánico
                 startAngle = -90f,
                 sweepAngle = 360f,
                 useCenter = false,
@@ -110,9 +110,9 @@ fun CircularTimeSelector(
                 style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
             )
 
-            // Draw the active part of the selector
+            // Draw the active part of the selector (gradiente oceánico)
             drawArc(
-                color = primaryColor,
+                color = Color(0xFF0EA5E9), // Azul cyan vibrante del tema oceánico
                 startAngle = -90f,
                 sweepAngle = angle,
                 useCenter = false,
@@ -128,27 +128,59 @@ fun CircularTimeSelector(
             val handleCenter = Offset(handleX, handleY)
             val handleRadius = strokeWidth * 1.4f
 
-            // --- Redesigned Handle ---
+            // --- Burbuja Oceánica como Handle ---
 
-            // 1. Draw a soft drop shadow for a 3D effect
+            // 1. Sombra suave para profundidad oceánica
             drawCircle(
-                color = Color.Black.copy(alpha = 0.2f),
-                radius = handleRadius,
-                center = handleCenter.copy(x = handleCenter.x + 4.dp.toPx(), y = handleCenter.y + 6.dp.toPx())
+                color = Color(0xFF0F172A).copy(alpha = 0.4f), // Azul profundo del océano
+                radius = handleRadius * 1.1f,
+                center = handleCenter.copy(
+                    x = handleCenter.x + 3.dp.toPx(), 
+                    y = handleCenter.y + 4.dp.toPx()
+                )
             )
 
-            // 2. Draw the main handle body
+            // 2. Fondo transparente de la burbuja (cuerpo principal)
             drawCircle(
-                color = primaryColor,
+                color = Color.White.copy(alpha = 0.25f), // Transparencia como el agua
                 radius = handleRadius,
                 center = handleCenter
             )
 
-            // 3. Draw the inner circle for contrast and detail
+            // 3. Borde brillante de la burbuja (efecto de tensión superficial)
             drawCircle(
-                color = Color.White,
-                radius = handleRadius * 0.45f,
-                center = handleCenter
+                color = Color.White.copy(alpha = 0.9f), // Borde blanco brillante
+                radius = handleRadius,
+                center = handleCenter,
+                style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round)
+            )
+
+            // 4. Brillo interior para efecto de refracción (highlight principal)
+            drawCircle(
+                color = Color.White.copy(alpha = 0.6f),
+                radius = handleRadius * 0.4f,
+                center = Offset(
+                    handleCenter.x - handleRadius * 0.3f,
+                    handleCenter.y - handleRadius * 0.3f
+                )
+            )
+
+            // 5. Segundo brillo más pequeño para mayor realismo
+            drawCircle(
+                color = Color.White.copy(alpha = 0.4f),
+                radius = handleRadius * 0.15f,
+                center = Offset(
+                    handleCenter.x + handleRadius * 0.2f,
+                    handleCenter.y - handleRadius * 0.4f
+                )
+            )
+
+            // 6. Reflejos sutiles en el borde para efecto vítreo
+            drawCircle(
+                color = Color(0xFF0EA5E9).copy(alpha = 0.3f), // Azul cyan del tema
+                radius = handleRadius * 0.8f,
+                center = handleCenter,
+                style = Stroke(width = 1.dp.toPx(), cap = StrokeCap.Round)
             )
         }
     }

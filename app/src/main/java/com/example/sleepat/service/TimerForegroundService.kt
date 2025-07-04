@@ -133,11 +133,11 @@ class TimerForegroundService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Sleep Timer")
+            .setContentTitle("Tiempo antes de dormir")
             .setContentText(formatTime(_timeLeftInSeconds.value))
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentIntent(pendingIntent)
-            .addAction(R.drawable.ic_launcher_foreground, "Stop", stopIntent)
+            .addAction(R.drawable.ic_launcher_foreground, "Parar", stopIntent)
             .setOngoing(true)
             .setSilent(true)
             .build()
