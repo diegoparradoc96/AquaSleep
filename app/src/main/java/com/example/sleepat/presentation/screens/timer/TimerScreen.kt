@@ -170,11 +170,19 @@ fun OceanWavesBackground(
 
 @Composable
 fun TimerScreen(
-    viewModel: TimerViewModel = hiltViewModel()
+    viewModel: TimerViewModel = hiltViewModel(),
+    shouldExtendTimer: Boolean = false
 ) {
     val selectedMinutes by viewModel.selectedMinutes.collectAsState()
     val timeLeftInSeconds by viewModel.timeLeftInSeconds.collectAsState()
     val isTimerRunning by viewModel.isTimerRunning.collectAsState()
+
+    // Efecto para extender el timer automáticamente cuando se presiona el botón en la notificación
+    LaunchedEffect(shouldExtendTimer) {
+        if (shouldExtendTimer && isTimerRunning) {
+            viewModel.extendTimer()
+        }
+    }
 
     // Burbujas compartidas que se regeneran cada vez que cambia el estado del timer
     val sharedBubbles = remember(isTimerRunning) {

@@ -14,12 +14,15 @@ object Routes {
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(shouldExtendTimer: Boolean = false) {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Routes.TIMER_SCREEN) {
         composable(Routes.TIMER_SCREEN) {
             val viewModel: TimerViewModel = hiltViewModel()
-            TimerScreen(viewModel = viewModel)
+            TimerScreen(
+                viewModel = viewModel,
+                shouldExtendTimer = shouldExtendTimer
+            )
         }
         // Add other composables/screens here
     }

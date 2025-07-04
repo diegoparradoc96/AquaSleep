@@ -87,6 +87,13 @@ class TimerViewModel @Inject constructor(
         context.startService(intent)
     }
 
+    fun extendTimer() {
+        val intent = Intent(context, TimerForegroundService::class.java).apply {
+            action = TimerForegroundService.ACTION_EXTEND_TIMER
+        }
+        context.startService(intent)
+    }
+
     private fun bindToService() {
         val intent = Intent(context, TimerForegroundService::class.java)
         context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)

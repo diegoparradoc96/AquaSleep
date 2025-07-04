@@ -30,6 +30,7 @@ class TimerForegroundService : Service() {
         const val CHANNEL_ID = "timer_channel"
         const val ACTION_START_TIMER = "start_timer"
         const val ACTION_STOP_TIMER = "stop_timer"
+        const val ACTION_EXTEND_TIMER = "extend_timer"
         const val EXTRA_MINUTES = "extra_minutes"
     }
 
@@ -68,6 +69,9 @@ class TimerForegroundService : Service() {
             ACTION_STOP_TIMER -> {
                 stopTimer()
             }
+            ACTION_EXTEND_TIMER -> {
+                extendTimer()
+            }
         }
         return START_NOT_STICKY
     }
@@ -81,16 +85,16 @@ class TimerForegroundService : Service() {
         startForeground(NOTIFICATION_ID, createNotification())
         
         timerJob = serviceScope.launch {
-            var seconds = _timeLeftInSeconds.value
-            while (seconds > 0) {
+            while (_timeLeftInSeconds.value > 0 && _isTimerRunning.value) {
                 delay(1000)
-                seconds--
-                _timeLeftInSeconds.value = seconds
+                _timeLeftInSeconds.value = _timeLeftInSeconds.value - 1
                 updateNotification()
             }
-            _isTimerRunning.value = false
-            mediaController.pauseCurrentMedia()
-            stopSelf()
+            if (_isTimerRunning.value) {
+                _isTimerRunning.value = false
+                mediaController.pauseCurrentMedia()
+                stopSelf()
+            }
         }
     }
 
@@ -98,7 +102,19 @@ class TimerForegroundService : Service() {
         timerJob?.cancel()
         _isTimerRunning.value = false
         _timeLeftInSeconds.value = 0
+        
+        // Cancelar la notificación cuando se para el timer
+        notificationManager.cancel(NOTIFICATION_ID)
+        
         stopSelf()
+    }
+
+    private fun extendTimer() {
+        if (_isTimerRunning.value) {
+            // Agregar 10 minutos (600 segundos) al tiempo restante
+            _timeLeftInSeconds.value = _timeLeftInSeconds.value + 600
+            updateNotification()
+        }
     }
 
     private fun createNotificationChannel() {
@@ -132,12 +148,22 @@ class TimerForegroundService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val extendIntent = PendingIntent.getService(
+            this,
+            1, // ID diferente para evitar conflictos
+            Intent(this, TimerForegroundService::class.java).apply {
+                action = ACTION_EXTEND_TIMER
+            },
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Tiempo antes de dormir")
             .setContentText(formatTime(_timeLeftInSeconds.value))
             .setSmallIcon(R.drawable.ic_timer_notification)
             .setContentIntent(pendingIntent)
             .addAction(R.drawable.ic_timer_notification, "Parar", stopIntent)
+            .addAction(R.drawable.ic_timer_notification, "Extender", extendIntent)
             .setOngoing(true)
             .setSilent(true)
             .build()
