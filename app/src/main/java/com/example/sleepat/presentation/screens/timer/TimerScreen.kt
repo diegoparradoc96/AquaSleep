@@ -1,5 +1,6 @@
 package com.example.sleepat.presentation.screens.timer
 
+import android.content.Context
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
@@ -8,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -25,11 +27,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.sleepat.R
+import com.example.sleepat.presentation.components.LanguageSelector
+import com.example.sleepat.presentation.components.updateLanguage
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -128,12 +135,13 @@ fun BubblesAnimation(
 
 @Composable
 fun OceanWavesBackground(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isAnimating: Boolean = true
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "ocean_waves")
     val waveOffset by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = 1f,
+        targetValue = if (isAnimating) 1f else 0f,
         animationSpec = infiniteRepeatable(
             animation = tween(6000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
@@ -145,9 +153,9 @@ fun OceanWavesBackground(
         val width = size.width
         val height = size.height
         
-        // Ondas sutiles del océano
+        // Ondas sutiles del océano - solo se animan cuando isAnimating es true
         for (i in 0..3) {
-            val alpha = 0.1f - (i * 0.02f)
+            val alpha = if (isAnimating) 0.1f - (i * 0.02f) else 0.05f - (i * 0.01f)
             val waveHeight = 30f + (i * 10f)
             val frequency = 0.006f + (i * 0.002f)
             
@@ -260,7 +268,7 @@ private fun TimerText(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "minutos",
+            text = stringResource(R.string.timer_minutes),
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.White.copy(alpha = 0.95f),
@@ -288,14 +296,38 @@ fun TimerScreen(
     viewModel: TimerViewModel = hiltViewModel(),
     shouldExtendTimer: Boolean = false
 ) {
+    val context = LocalContext.current
     val selectedMinutes by viewModel.selectedMinutes.collectAsState()
     val timeLeftInSeconds by viewModel.timeLeftInSeconds.collectAsState()
     val isTimerRunning by viewModel.isTimerRunning.collectAsState()
+    
+    // Estado para controlar el cambio de idioma
+    var languageToApply by remember { mutableStateOf<String?>(null) }
 
     // Efecto para extender el timer automáticamente cuando se presiona el botón en la notificación
     LaunchedEffect(shouldExtendTimer) {
         if (shouldExtendTimer && isTimerRunning) {
             viewModel.extendTimer()
+        }
+    }
+    
+    // Efecto para aplicar el cambio de idioma de forma segura
+    LaunchedEffect(languageToApply) {
+        languageToApply?.let { languageCode ->
+            try {
+                // Guardar el idioma seleccionado
+                val sharedPrefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+                sharedPrefs.edit().putString("selected_language", languageCode).apply()
+                
+                // Delay para permitir que el menú se cierre suavemente
+                kotlinx.coroutines.delay(100)
+                
+                // Usar recreate() que es más estable
+                (context as? androidx.activity.ComponentActivity)?.recreate()
+            } catch (e: Exception) {
+                // Si hay un error, al menos se guarda el idioma
+                e.printStackTrace()
+            }
         }
     }
 
@@ -349,14 +381,16 @@ fun TimerScreen(
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Fondo de ondas del océano
+        // Fondo de ondas del océano - solo se anima cuando el timer está corriendo
         OceanWavesBackground(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            isAnimating = isTimerRunning
         )
         
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .systemBarsPadding()
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
@@ -374,6 +408,17 @@ fun TimerScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
+        // Selector de idioma en la parte superior
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            LanguageSelector(
+                onLanguageChanged = { languageCode ->
+                    languageToApply = languageCode
+                }
+            )
+        }
         // Spacer superior para centrar el componente principal
         Spacer(modifier = Modifier.weight(1f))
         
@@ -409,13 +454,13 @@ fun TimerScreen(
                     initialMinutes = selectedMinutes,
                     onTimeChange = { viewModel.updateSelectedMinutes(it) }
                 ) {
-                    // Círculo contenedor para selector
+                    // Círculo contenedor para selector - sin animación de burbujas
                     TimerCircle(
                         centerColor = centerColor,
                         edgeColor = edgeColor,
                         bubbles = sharedBubbles,
                         resetTrigger = !isTimerRunning,
-                        isAnimating = true,
+                        isAnimating = false, // No animar burbujas cuando no esté corriendo
                         scale = scaleAnimation
                     )
                 }
@@ -470,7 +515,7 @@ private fun TimerButtons(
             )
         ) {
             Text(
-                "Iniciar",
+                stringResource(R.string.timer_start),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -493,7 +538,7 @@ private fun TimerButtons(
             )
         ) {
             Text(
-                "Detener",
+                stringResource(R.string.timer_stop),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold
             )
