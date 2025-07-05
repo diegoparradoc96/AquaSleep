@@ -93,6 +93,13 @@ class TimerForegroundService : Service() {
             if (_isTimerRunning.value) {
                 _isTimerRunning.value = false
                 mediaController.pauseCurrentMedia()
+                
+                // Detener el servicio foreground y cancelar la notificación
+                stopForeground(true) // true para remover la notificación
+                
+                // Cancelar la notificación explícitamente por seguridad
+                notificationManager.cancel(NOTIFICATION_ID)
+                
                 stopSelf()
             }
         }
@@ -103,7 +110,10 @@ class TimerForegroundService : Service() {
         _isTimerRunning.value = false
         _timeLeftInSeconds.value = 0
         
-        // Cancelar la notificación cuando se para el timer
+        // Detener el servicio foreground y cancelar la notificación
+        stopForeground(true) // true para remover la notificación
+        
+        // Cancelar la notificación explícitamente por seguridad
         notificationManager.cancel(NOTIFICATION_ID)
         
         stopSelf()
@@ -188,5 +198,8 @@ class TimerForegroundService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         timerJob?.cancel()
+        
+        // Asegurar que la notificación se cancele cuando el servicio se destruye
+        notificationManager.cancel(NOTIFICATION_ID)
     }
 }
