@@ -8,26 +8,21 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-
 import androidx.compose.ui.graphics.StrokeCap
-
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
@@ -35,17 +30,28 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-
 import kotlin.math.sin
 import kotlin.random.Random
+
+// Constantes para colores
+private object TimerColors {
+    val CyanBlue = Color(0xFF0EA5E9)
+    val AquaBlue = Color(0xFF06B6D4)
+    val TurquoiseGreen = Color(0xFF14B8A6)
+    val OceanWave = Color(0xFF0891B2)
+    val DeepBlue = Color(0xFF0F172A)
+    val MidBlue = Color(0xFF1E293B)
+    val AquaGreen = Color(0xFF0F766E)
+    val DarkGreen = Color(0xFF134E4A)
+    val VeryDarkGreen = Color(0xFF064E3B)
+    val TextShadow = Color(0xFF1E293B)
+}
 
 // Data class para representar una burbuja
 data class Bubble(
     val id: Int,
     val startX: Float,
-    val startY: Float,
     val size: Float,
-    val speed: Float,
     val oscillation: Float
 )
 
@@ -53,10 +59,8 @@ data class Bubble(
 fun BubblesAnimation(
     modifier: Modifier = Modifier,
     isAnimating: Boolean = true,
-    centerColor: Color,
-    edgeColor: Color,
     bubbles: List<Bubble>,
-    resetTrigger: Boolean // Nuevo parámetro para forzar el reinicio
+    resetTrigger: Boolean
 ) {
     // Cada vez que cambia resetTrigger, la animación se reinicia completamente
     val infiniteTransition = rememberInfiniteTransition(label = "bubbles_$resetTrigger")
@@ -162,9 +166,120 @@ fun OceanWavesBackground(
             
             drawPath(
                 path = path,
-                color = Color(0xFF0891B2).copy(alpha = alpha)
+                color = TimerColors.OceanWave.copy(alpha = alpha)
             )
         }
+    }
+}
+
+@Composable
+private fun TimerCircle(
+    modifier: Modifier = Modifier,
+    centerColor: Color,
+    edgeColor: Color,
+    bubbles: List<Bubble>,
+    resetTrigger: Boolean,
+    isAnimating: Boolean,
+    scale: Float,
+    elevation: Float = 16.dp.value
+) {
+    Card(
+        modifier = modifier
+            .size(250.dp)
+            .scale(scale)
+            .shadow(
+                elevation = elevation.dp,
+                shape = CircleShape,
+                ambientColor = centerColor.copy(alpha = 0.3f),
+                spotColor = edgeColor.copy(alpha = 0.3f)
+            ),
+        shape = CircleShape,
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Transparent
+        ),
+        border = BorderStroke(
+            width = 3.dp,
+            brush = Brush.sweepGradient(
+                colors = listOf(
+                    centerColor.copy(alpha = 0.8f),
+                    edgeColor.copy(alpha = 0.8f),
+                    centerColor.copy(alpha = 0.8f)
+                )
+            )
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(CircleShape)
+        ) {
+            // Burbujas animadas de fondo
+            BubblesAnimation(
+                modifier = Modifier.fillMaxSize(),
+                isAnimating = isAnimating,
+                bubbles = bubbles,
+                resetTrigger = resetTrigger
+            )
+        }
+    }
+}
+
+@Composable
+private fun TimerText(
+    minutes: Int,
+    scale: Float,
+    pulseScale: Float = 1f,
+    showPulse: Boolean = false
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.scale(scale * if (showPulse) pulseScale else 1f)
+    ) {
+        Text(
+            text = "$minutes",
+            fontSize = 72.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color.White,
+            textAlign = TextAlign.Center,
+            style = androidx.compose.ui.text.TextStyle(
+                shadow = androidx.compose.ui.graphics.Shadow(
+                    color = TimerColors.TextShadow.copy(alpha = 0.8f),
+                    offset = androidx.compose.ui.geometry.Offset(3f, 3f),
+                    blurRadius = 6f
+                )
+            ),
+            modifier = if (showPulse) {
+                Modifier.graphicsLayer {
+                    // Efecto de brillo sutil en el texto
+                    scaleX = 1f + (pulseScale - 1f) * 0.3f
+                    scaleY = 1f + (pulseScale - 1f) * 0.3f
+                }
+            } else {
+                Modifier
+            }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "minutos",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.White.copy(alpha = 0.95f),
+            textAlign = TextAlign.Center,
+            style = androidx.compose.ui.text.TextStyle(
+                shadow = androidx.compose.ui.graphics.Shadow(
+                    color = TimerColors.TextShadow.copy(alpha = 0.6f),
+                    offset = androidx.compose.ui.geometry.Offset(2f, 2f),
+                    blurRadius = 4f
+                )
+            ),
+            modifier = if (showPulse) {
+                Modifier.graphicsLayer {
+                    alpha = 0.8f + (pulseScale - 1f) * 2f
+                }
+            } else {
+                Modifier
+            }
+        )
     }
 }
 
@@ -184,32 +299,19 @@ fun TimerScreen(
         }
     }
 
-    // Burbujas compartidas que se regeneran cada vez que cambia el estado del timer
+    // Burbujas que se regeneran cada vez que cambia el estado del timer
     val sharedBubbles = remember(isTimerRunning) {
         (0..12).map { id ->
             Bubble(
                 id = id,
                 startX = Random.nextFloat(),
-                startY = 1.2f,
                 size = Random.nextFloat() * 15f + 8f,
-                speed = Random.nextFloat() * 0.02f + 0.01f,
                 oscillation = Random.nextFloat() * 0.02f + 0.01f
             )
         }
     }
 
     // Animaciones
-    val infiniteRotation = rememberInfiniteTransition(label = "rotation")
-    val rotationAngle by infiniteRotation.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(10000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "rotation"
-    )
-
     val pulseAnimation = rememberInfiniteTransition(label = "pulse")
     val pulseScale by pulseAnimation.animateFloat(
         initialValue = 1f,
@@ -234,12 +336,12 @@ fun TimerScreen(
 
     // Animación de colores del gradiente
     val centerColor by animateColorAsState(
-        targetValue = if (isTimerRunning) Color(0xFF0EA5E9) else Color(0xFF06B6D4), // Azul cyan vibrante
+        targetValue = if (isTimerRunning) TimerColors.CyanBlue else TimerColors.AquaBlue,
         animationSpec = tween(800),
         label = "centerColor"
     )
     val edgeColor by animateColorAsState(
-        targetValue = if (isTimerRunning) Color(0xFF14B8A6) else Color(0xFF0EA5E9), // Verde agua/turquesa
+        targetValue = if (isTimerRunning) TimerColors.TurquoiseGreen else TimerColors.CyanBlue,
         animationSpec = tween(800),
         label = "edgeColor"
     )
@@ -258,11 +360,11 @@ fun TimerScreen(
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFF0F172A).copy(alpha = 0.7f), // Azul oscuro profundo (superficie)
-                            Color(0xFF1E293B).copy(alpha = 0.8f), // Azul gris medio
-                            Color(0xFF0F766E).copy(alpha = 0.8f), // Verde azulado (agua media)
-                            Color(0xFF134E4A).copy(alpha = 0.9f), // Verde oscuro (profundidades)
-                            Color(0xFF064E3B).copy(alpha = 0.95f) // Verde muy oscuro (fondo marino)
+                            TimerColors.DeepBlue.copy(alpha = 0.7f),
+                            TimerColors.MidBlue.copy(alpha = 0.8f),
+                            TimerColors.AquaGreen.copy(alpha = 0.8f),
+                            TimerColors.DarkGreen.copy(alpha = 0.9f),
+                            TimerColors.VeryDarkGreen.copy(alpha = 0.95f)
                         ),
                         startY = 0f,
                         endY = Float.POSITIVE_INFINITY
@@ -283,236 +385,118 @@ fun TimerScreen(
                 // Mostrar solo minutos cuando el timer está corriendo con diseño atractivo
                 val minutes = kotlin.math.ceil(timeLeftInSeconds / 60.0).toInt()
                 
-                // Círculo contenedor transparente con borde
-                Card(
-                    modifier = Modifier
-                        .size(250.dp)
-                        .scale(scaleAnimation * if (isTimerRunning) pulseScale else 1f)
-                        .shadow(
-                            elevation = if (isTimerRunning) 20.dp else 16.dp,
-                            shape = CircleShape,
-                            ambientColor = centerColor.copy(alpha = 0.3f),
-                            spotColor = edgeColor.copy(alpha = 0.3f)
-                        ),
-                    shape = CircleShape,
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color.Transparent
-                    ),
-                    border = BorderStroke(
-                        width = 3.dp,
-                        brush = Brush.sweepGradient(
-                            colors = listOf(
-                                centerColor.copy(alpha = 0.8f),
-                                edgeColor.copy(alpha = 0.8f),
-                                centerColor.copy(alpha = 0.8f)
-                            )
-                        )
-                    )
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(CircleShape)
-                    ) {
-                        // Burbujas animadas de fondo
-                        BubblesAnimation(
-                            modifier = Modifier.fillMaxSize(),
-                            isAnimating = isTimerRunning,
-                            centerColor = centerColor,
-                            edgeColor = edgeColor,
-                            bubbles = sharedBubbles,
-                            resetTrigger = isTimerRunning
-                        )
-                    }
-                }
+                // Círculo contenedor con animación de pulso
+                TimerCircle(
+                    centerColor = centerColor,
+                    edgeColor = edgeColor,
+                    bubbles = sharedBubbles,
+                    resetTrigger = isTimerRunning,
+                    isAnimating = isTimerRunning,
+                    scale = scaleAnimation * pulseScale,
+                    elevation = 20.dp.value
+                )
                 
-                // Texto que NO rota (superpuesto al círculo)
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.scale(scaleAnimation * if (isTimerRunning) pulseScale else 1f)
-                ) {
-                    Text(
-                        text = "$minutes",
-                        fontSize = 72.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White,
-                        textAlign = TextAlign.Center,
-                        style = androidx.compose.ui.text.TextStyle(
-                            shadow = androidx.compose.ui.graphics.Shadow(
-                                color = Color(0xFF1E293B).copy(alpha = 0.8f),
-                                offset = androidx.compose.ui.geometry.Offset(3f, 3f),
-                                blurRadius = 6f
-                            )
-                        ),
-                        modifier = Modifier.graphicsLayer {
-                            // Efecto de brillo sutil en el texto
-                            scaleX = 1f + (pulseScale - 1f) * 0.3f
-                            scaleY = 1f + (pulseScale - 1f) * 0.3f
-                        }
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "minutos",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White.copy(alpha = 0.95f),
-                        textAlign = TextAlign.Center,
-                        style = androidx.compose.ui.text.TextStyle(
-                            shadow = androidx.compose.ui.graphics.Shadow(
-                                color = Color(0xFF1E293B).copy(alpha = 0.6f),
-                                offset = androidx.compose.ui.geometry.Offset(2f, 2f),
-                                blurRadius = 4f
-                            )
-                        ),
-                        modifier = Modifier.graphicsLayer {
-                            alpha = 0.8f + (pulseScale - 1f) * 2f
-                        }
-                    )
-                }
+                // Texto superpuesto con animación de pulso
+                TimerText(
+                    minutes = minutes,
+                    scale = scaleAnimation,
+                    pulseScale = pulseScale,
+                    showPulse = true
+                )
             } else {
                 CircularTimeSelector(
                     modifier = Modifier.fillMaxSize(),
                     initialMinutes = selectedMinutes,
                     onTimeChange = { viewModel.updateSelectedMinutes(it) }
                 ) {
-                    // Círculo contenedor transparente con borde (idéntico al del timer corriendo)
-                    Card(
-                        modifier = Modifier
-                            .size(250.dp)
-                            .scale(scaleAnimation)
-                            .shadow(
-                                elevation = 16.dp,
-                                shape = CircleShape,
-                                ambientColor = centerColor.copy(alpha = 0.3f),
-                                spotColor = edgeColor.copy(alpha = 0.3f)
-                            ),
-                        shape = CircleShape,
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.Transparent
-                        ),
-                        border = BorderStroke(
-                            width = 3.dp,
-                            brush = Brush.sweepGradient(
-                                colors = listOf(
-                                    centerColor.copy(alpha = 0.8f),
-                                    edgeColor.copy(alpha = 0.8f),
-                                    centerColor.copy(alpha = 0.8f)
-                                )
-                            )
-                        )
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(CircleShape)
-                        ) {
-                            // Burbujas animadas de fondo (idénticas al timer corriendo)
-                            BubblesAnimation(
-                                modifier = Modifier.fillMaxSize(),
-                                isAnimating = true,
-                                centerColor = centerColor,
-                                edgeColor = edgeColor,
-                                bubbles = sharedBubbles,
-                                resetTrigger = !isTimerRunning
-                            )
-                        }
-                    }
+                    // Círculo contenedor para selector
+                    TimerCircle(
+                        centerColor = centerColor,
+                        edgeColor = edgeColor,
+                        bubbles = sharedBubbles,
+                        resetTrigger = !isTimerRunning,
+                        isAnimating = true,
+                        scale = scaleAnimation
+                    )
                 }
                 
-                // Texto que se superpone al círculo (idéntico al del timer corriendo)
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.scale(scaleAnimation)
-                ) {
-                    Text(
-                        text = "$selectedMinutes",
-                        fontSize = 72.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White,
-                        textAlign = TextAlign.Center,
-                        style = androidx.compose.ui.text.TextStyle(
-                            shadow = androidx.compose.ui.graphics.Shadow(
-                                color = Color(0xFF1E293B).copy(alpha = 0.8f),
-                                offset = androidx.compose.ui.geometry.Offset(3f, 3f),
-                                blurRadius = 6f
-                            )
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "minutos",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White.copy(alpha = 0.95f),
-                        textAlign = TextAlign.Center,
-                        style = androidx.compose.ui.text.TextStyle(
-                            shadow = androidx.compose.ui.graphics.Shadow(
-                                color = Color(0xFF1E293B).copy(alpha = 0.6f),
-                                offset = androidx.compose.ui.geometry.Offset(2f, 2f),
-                                blurRadius = 4f
-                            )
-                        )
-                    )
-                }
+                // Texto superpuesto para selector
+                TimerText(
+                    minutes = selectedMinutes,
+                    scale = scaleAnimation
+                )
             }
         }
 
         // Spacer flexible para empujar los botones hacia abajo
         Spacer(modifier = Modifier.weight(1f))
 
-        // Botones en la parte inferior con diseño elegante y bordes
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            OutlinedButton(
-                onClick = { viewModel.startTimer() },
-                enabled = !isTimerRunning,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp),
-                shape = RoundedCornerShape(28.dp),
-                border = BorderStroke(
-                    width = 2.dp,
-                    color = if (!isTimerRunning) Color(0xFF0EA5E9) else Color(0xFF0EA5E9).copy(alpha = 0.3f) // Azul cyan
-                ),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = if (!isTimerRunning) Color(0xFF0EA5E9) else Color(0xFF0EA5E9).copy(alpha = 0.5f),
-                    disabledContentColor = Color(0xFF0EA5E9).copy(alpha = 0.3f)
-                )
-            ) {
-                Text(
-                    "Iniciar",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-            
-            OutlinedButton(
-                onClick = { viewModel.stopTimer() },
-                enabled = isTimerRunning,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp),
-                shape = RoundedCornerShape(28.dp),
-                border = BorderStroke(
-                    width = 2.dp,
-                    color = if (isTimerRunning) Color(0xFF14B8A6) else Color(0xFF14B8A6).copy(alpha = 0.3f) // Verde turquesa
-                ),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = if (isTimerRunning) Color(0xFF14B8A6) else Color(0xFF14B8A6).copy(alpha = 0.5f),
-                    disabledContentColor = Color(0xFF14B8A6).copy(alpha = 0.3f)
-                )
-            ) {
-                Text(
-                    "Detener",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
+        // Botones en la parte inferior
+        TimerButtons(
+            isTimerRunning = isTimerRunning,
+            onStartClick = { viewModel.startTimer() },
+            onStopClick = { viewModel.stopTimer() }
+        )
         }
+    }
+}
+
+@Composable
+private fun TimerButtons(
+    isTimerRunning: Boolean,
+    onStartClick: () -> Unit,
+    onStopClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        OutlinedButton(
+            onClick = onStartClick,
+            enabled = !isTimerRunning,
+            modifier = Modifier
+                .weight(1f)
+                .height(56.dp),
+            shape = RoundedCornerShape(28.dp),
+            border = BorderStroke(
+                width = 2.dp,
+                color = if (!isTimerRunning) TimerColors.CyanBlue else TimerColors.CyanBlue.copy(alpha = 0.3f)
+            ),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = if (!isTimerRunning) TimerColors.CyanBlue else TimerColors.CyanBlue.copy(alpha = 0.5f),
+                disabledContentColor = TimerColors.CyanBlue.copy(alpha = 0.3f)
+            )
+        ) {
+            Text(
+                "Iniciar",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+        
+        OutlinedButton(
+            onClick = onStopClick,
+            enabled = isTimerRunning,
+            modifier = Modifier
+                .weight(1f)
+                .height(56.dp),
+            shape = RoundedCornerShape(28.dp),
+            border = BorderStroke(
+                width = 2.dp,
+                color = if (isTimerRunning) TimerColors.TurquoiseGreen else TimerColors.TurquoiseGreen.copy(alpha = 0.3f)
+            ),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = if (isTimerRunning) TimerColors.TurquoiseGreen else TimerColors.TurquoiseGreen.copy(alpha = 0.5f),
+                disabledContentColor = TimerColors.TurquoiseGreen.copy(alpha = 0.3f)
+            )
+        ) {
+            Text(
+                "Detener",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }
