@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.*
 
 class TimerForegroundService : Service() {
 
@@ -31,6 +33,7 @@ class TimerForegroundService : Service() {
         const val ACTION_START_TIMER = "start_timer"
         const val ACTION_STOP_TIMER = "stop_timer"
         const val ACTION_EXTEND_TIMER = "extend_timer"
+        const val ACTION_UPDATE_LANGUAGE = "UPDATE_LANGUAGE"
         const val EXTRA_MINUTES = "extra_minutes"
     }
 
@@ -49,6 +52,19 @@ class TimerForegroundService : Service() {
 
     inner class TimerBinder : Binder() {
         fun getService(): TimerForegroundService = this@TimerForegroundService
+    }
+
+    private fun getStoredLanguage(): String {
+        val sharedPrefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        return sharedPrefs.getString("selected_language", "es") ?: "es"
+    }
+
+    private fun createLocalizedContext(): Context {
+        val languageCode = getStoredLanguage()
+        val locale = Locale(languageCode)
+        val config = Configuration(resources.configuration)
+        config.setLocale(locale)
+        return createConfigurationContext(config)
     }
 
     override fun onCreate() {
@@ -71,6 +87,14 @@ class TimerForegroundService : Service() {
             }
             ACTION_EXTEND_TIMER -> {
                 extendTimer()
+            }
+            ACTION_UPDATE_LANGUAGE -> {
+                // Recrear el canal de notificaciones con el nuevo idioma
+                createNotificationChannel()
+                // Actualizar la notificación si el timer está corriendo
+                if (_isTimerRunning.value) {
+                    updateNotification()
+                }
             }
         }
         return START_NOT_STICKY
@@ -129,12 +153,19 @@ class TimerForegroundService : Service() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val localizedContext = createLocalizedContext()
+            
+            // Eliminar el canal existente si existe para permitir la actualización del idioma
+            if (::notificationManager.isInitialized) {
+                notificationManager.deleteNotificationChannel(CHANNEL_ID)
+            }
+            
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Timer Notifications",
+                localizedContext.getString(R.string.notification_channel_name),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Notifications for sleep timer"
+                description = localizedContext.getString(R.string.notification_channel_description)
                 setSound(null, null)
             }
             notificationManager.createNotificationChannel(channel)
@@ -142,6 +173,8 @@ class TimerForegroundService : Service() {
     }
 
     private fun createNotification(): Notification {
+        val localizedContext = createLocalizedContext()
+        
         val pendingIntent = PendingIntent.getActivity(
             this,
             0,
@@ -168,12 +201,12 @@ class TimerForegroundService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Tiempo antes de dormir")
+            .setContentTitle(localizedContext.getString(R.string.notification_title))
             .setContentText(formatTime(_timeLeftInSeconds.value))
             .setSmallIcon(R.drawable.ic_timer_notification)
             .setContentIntent(pendingIntent)
-            .addAction(R.drawable.ic_timer_notification, "Parar", stopIntent)
-            .addAction(R.drawable.ic_timer_notification, "Extender", extendIntent)
+            .addAction(R.drawable.ic_timer_notification, localizedContext.getString(R.string.notification_action_stop), stopIntent)
+            .addAction(R.drawable.ic_timer_notification, localizedContext.getString(R.string.notification_action_extend), extendIntent)
             .setOngoing(true)
             .setSilent(true)
             .build()
