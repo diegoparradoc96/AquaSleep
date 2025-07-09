@@ -1,4 +1,4 @@
-package com.example.sleepat.presentation.screens.timer
+package com.diegopcdev.aquasleep.presentation.screens.timer
 
 import android.content.Context
 import androidx.compose.animation.animateColorAsState
@@ -34,9 +34,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.sleepat.R
-import com.example.sleepat.presentation.components.LanguageSelector
-import com.example.sleepat.presentation.components.updateLanguage
+import com.diegopcdev.aquasleep.R
+import com.diegopcdev.aquasleep.presentation.components.LanguageSelector
 import kotlin.math.sin
 import kotlin.random.Random
 

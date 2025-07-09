@@ -1,4 +1,4 @@
-package com.example.sleepat.presentation.screens.timer
+package com.diegopcdev.aquasleep.presentation.screens.timer
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture

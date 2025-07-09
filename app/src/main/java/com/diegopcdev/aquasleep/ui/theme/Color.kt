@@ -1,4 +1,4 @@
-package com.example.sleepat.ui.theme
+package com.diegopcdev.aquasleep.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

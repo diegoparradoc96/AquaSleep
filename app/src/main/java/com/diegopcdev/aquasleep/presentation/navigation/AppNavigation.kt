@@ -1,12 +1,12 @@
-package com.example.sleepat.presentation.navigation
+package com.diegopcdev.aquasleep.presentation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.sleepat.presentation.screens.timer.TimerScreen
-import com.example.sleepat.presentation.screens.timer.TimerViewModel
+import com.diegopcdev.aquasleep.presentation.screens.timer.TimerScreen
+import com.diegopcdev.aquasleep.presentation.screens.timer.TimerViewModel
 
 object Routes {
     const val TIMER_SCREEN = "timer_screen"

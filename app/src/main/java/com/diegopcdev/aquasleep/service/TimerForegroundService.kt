@@ -1,4 +1,4 @@
-package com.example.sleepat.service
+package com.diegopcdev.aquasleep.service
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -12,9 +12,9 @@ import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import com.example.sleepat.MainActivity
-import com.example.sleepat.R
-import com.example.sleepat.domain.manager.MediaController
+import com.diegopcdev.aquasleep.MainActivity
+import com.diegopcdev.aquasleep.R
+import com.diegopcdev.aquasleep.domain.manager.MediaController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
