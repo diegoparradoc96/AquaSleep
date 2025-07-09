@@ -5,12 +5,14 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+val bundleId = "com.diegopcdev.aquasleep"
+
 android {
-    namespace = "com.example.sleepat"
+    namespace = "com.diegopcdev.aquasleep"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.sleepat"
+        applicationId = bundleId
         minSdk = 24
         targetSdk = 34
         versionCode = 1

@@ -1,4 +1,4 @@
-package com.example.sleepat.domain.manager
+package com.diegopcdev.aquasleep.domain.manager
 
 import android.content.Context
 import android.media.AudioManager

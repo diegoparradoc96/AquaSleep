@@ -1,6 +1,6 @@
 <resources>
     <!-- App name -->
-    <string name="app_name">Sleep at</string>
+    <string name="app_name">AquaSleep</string>
     
     <!-- Timer Screen -->
     <string name="timer_remaining_time">Time remaining</string>

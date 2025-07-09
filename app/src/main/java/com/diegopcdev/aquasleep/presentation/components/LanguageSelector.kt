@@ -1,4 +1,4 @@
-package com.example.sleepat.presentation.components
+package com.diegopcdev.aquasleep.presentation.components
 
 import android.content.Context
 import android.content.Intent
@@ -13,12 +13,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.sleepat.R
-import com.example.sleepat.service.TimerForegroundService
+import com.diegopcdev.aquasleep.service.TimerForegroundService
 import java.util.*
 
 data class Language(

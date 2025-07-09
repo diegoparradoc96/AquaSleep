@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Sleep at"
+rootProject.name = "aquasleep"
 include(":app")
  

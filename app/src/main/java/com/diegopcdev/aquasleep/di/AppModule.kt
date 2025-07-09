@@ -1,7 +1,7 @@
-package com.example.sleepat.di
+package com.diegopcdev.aquasleep.di
 
 import android.content.Context
-import com.example.sleepat.domain.manager.MediaController
+import com.diegopcdev.aquasleep.domain.manager.MediaController
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

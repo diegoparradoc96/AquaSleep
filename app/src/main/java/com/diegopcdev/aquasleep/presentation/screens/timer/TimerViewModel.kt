@@ -1,4 +1,4 @@
-package com.example.sleepat.presentation.screens.timer
+package com.diegopcdev.aquasleep.presentation.screens.timer
 
 import android.content.ComponentName
 import android.content.Context
@@ -7,7 +7,7 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.sleepat.service.TimerForegroundService
+import com.diegopcdev.aquasleep.service.TimerForegroundService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
