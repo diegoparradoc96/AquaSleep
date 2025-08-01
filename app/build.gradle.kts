@@ -18,6 +18,9 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        // Configurar el nombre base de la APK
+        setProperty("archivesBaseName", "AquaSleep-v$versionName")
+
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -26,6 +29,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
