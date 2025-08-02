@@ -1,6 +1,6 @@
 # 🌙 AquaSleep
 
-**AquaSleep** is a modern sleep timer application designed to help you relax and fall asleep effortlessly. Whether you're listening to music, podcasts, or white noise, AquaSleep ensures your playback stops automatically, so you can rest without interruptions.
+**AquaSleep** is a sleep timer application for android designed to help you relax and fall asleep effortlessly. Whether you're listening to music, podcasts, or white noise, AquaSleep ensures your playback stops automatically, so you can rest without interruptions.
 
 ---
 
