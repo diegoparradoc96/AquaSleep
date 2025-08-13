@@ -66,7 +66,7 @@ Get the latest version of AquaSleep from the [Releases](https://github.com/diego
 
 ## 🤝 Contributing
 
-We welcome contributions! If you'd like to contribute:
+I’m currently the sole developer of this project, but I’m open to and would greatly appreciate contributions from the community.
 
 ---
 
